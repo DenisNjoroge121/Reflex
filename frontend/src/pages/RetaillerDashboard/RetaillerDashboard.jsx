@@ -1,64 +1,100 @@
-import { useState } from 'react';
-import API from '../../services/api';
+import { useState } from "react";
+import API from "../../services/api";
 
-import { getFirstName, getLastName } from '@/utils/auth';
+import { getFirstName, getLastName } from "@/utils/auth";
+import DeliveryItem from "./components/DeliveryItem";
 
-import React from 'react'
-import { useEffect } from 'react';
-import AddDelivery from './components/AddDelivery';
+import React from "react";
+import { useEffect } from "react";
+import AddDelivery from "./components/AddDelivery";
 
 export default function RetailerDashboard() {
-    const firstName = "Samuel"// getFirstName();
-    const lastName = "Kima" // getLastName();
+  const firstName = "Samuel"; // getFirstName();
+  const lastName = "Kima"; // getLastName();
 
-    const [deliveries, setDeliveries] = useState([])
+  const [deliveries, setDeliveries] = useState([]);
 
-    const [allDeliveriesCount, setAllDeliveriesCount]= useState(null)
-    const [loadingDeliveries, setLoadingDeliveries]= useState(false)
-    const [message, setMessage]= useState("")
-    const [messageType, setMessageType]=useState("")
+  const [allDeliveriesCount, setAllDeliveriesCount] = useState(null);
+  const [loadingDeliveries, setLoadingDeliveries] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
-    const loadDeliveries = async () => {
-        setLoadingDeliveries(true)
-         try {
-            const res = await API.get('/deliveries')
-            const allDeliveries = res.data?.deliveries || [];
-            setDeliveries(allDeliveries)
-            setAllDeliveriesCount(allDeliveries.length);            
-         } catch (error) {
-            const message = error.response?.data?.message || "Failed to get deliveries";
-            setMessage(message)
-            setMessageType("error")            
-         }
+  const loadDeliveries = async () => {
+    setLoadingDeliveries(true);
+    try {
+      //   const res = await API.get("/deliveries");
+      const allDeliveries =
+        //   res.data?.deliveries ||
+        [
+          {
+            id: 1,
+            customerName: "John Doe",
+            phone: "0712345678",
+            address: "123 Main St, Cityville",
+            itemDescription: "Electronics",
+            status: "Pending",
+            location: "Nairobi",
+          },
+          {
+            id: 2,
+            customerName: "Jane Smith",
+            phone: "0798765432",
+            address: "456 Elm St, Townsville",
+            itemDescription: "Clothing",
+            status: "In Transit",
+            location: "Mombasa",
+          },
+          {
+            id: 3,
+            customerName: "Alice Johnson",
+            phone: "0709876543",
+            address: "789 Oak St, Villageville",
+            itemDescription: "Books",
+            status: "Delivered",
+            location: "Kisumu",
+          },
+        ];
+      setDeliveries(allDeliveries);
+      setAllDeliveriesCount(allDeliveries.length);
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to get deliveries";
+      setMessage(message);
+      setMessageType("error");
+    } finally {
+      setLoadingDeliveries(false);
     }
+  };
 
-    useEffect(() => {
-        loadDeliveries()
-    })
+  useEffect(() => {
+    loadDeliveries();
+  }, []);
 
-    useEffect(() => {
-        if (!message) return
+  useEffect(
+    () => {
+      if (!message) return;
 
-        const timer = setTimeout(() => {
-            setMessage("")
-            setMessageType("")
-        }, 3000)
+      const timer = setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
 
-        return () => clearTimeout(timer)
-    }, [message], [messageType])
+      return () => clearTimeout(timer);
+    },
+    [message],
+    [messageType],
+  );
 
-    const logOut = () => {
-        localStorage.removeItem("token");
-        localStorage.setItem("logout", Date.now())
-        window.location.href = '/'
-    }
+  const logOut = () => {
+    localStorage.removeItem("token");
+    localStorage.setItem("logout", Date.now());
+    window.location.href = "/";
+  };
   return (
     <div className="min-h-screen bg-slate-50">
-      
       {/* Top Navigation */}
       <header className="sticky top-0 z-10 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          
           {/* Logo / Title */}
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center text-white">
@@ -80,7 +116,9 @@ export default function RetailerDashboard() {
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-slate-900 leading-tight">Reflex</h1>
+              <h1 className="text-lg font-bold text-slate-900 leading-tight">
+                Reflex
+              </h1>
               <p className="text-xs text-slate-500 -mt-0.5">Retailer Portal</p>
             </div>
           </div>
@@ -89,7 +127,8 @@ export default function RetailerDashboard() {
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-3">
               <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                {firstName.charAt(0).toUpperCase()}{lastName.charAt(0).toUpperCase()}
+                {firstName.charAt(0).toUpperCase()}
+                {lastName.charAt(0).toUpperCase()}
               </div>
               <div className="text-sm">
                 <p className="font-medium text-slate-900 leading-tight">{`${firstName} ${lastName}`}</p>
@@ -123,7 +162,6 @@ export default function RetailerDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -139,14 +177,12 @@ export default function RetailerDashboard() {
             type="button"
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
           >
-          
-            <AddDelivery setDeliveries={setDeliveries}/>
+            <AddDelivery setDeliveries={setDeliveries} />
           </button>
         </div>
 
         {/* Deliveries Section */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
-          
           {/* Section Header */}
           <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
             <h3 className="text-base font-semibold text-slate-900">
@@ -157,37 +193,68 @@ export default function RetailerDashboard() {
             </span>
           </div>
 
-          {/* Deliveries Container */}
+                   {/* Deliveries Container */}
           <div className="p-6">
-            {/* Deliveries will go here */}
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-6 h-6 text-slate-400"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
-                  <path d="M15 18H9" />
-                  <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
-                  <circle cx="17" cy="18" r="2" />
-                  <circle cx="7" cy="18" r="2" />
-                </svg>
+            {loadingDeliveries ? (
+              // Skeleton Loader
+              <div className="flex flex-col gap-3">
+                {[1, 2, 3].map((i) => (
+                  <div 
+                    key={i} 
+                    className="w-full p-4 bg-white border border-slate-200 rounded-xl animate-pulse"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="h-5 w-1/3 bg-slate-200 rounded-md"></div>
+                        <div className="h-4 w-1/4 bg-slate-200 rounded-md"></div>
+                        <div className="h-3 w-2/3 bg-slate-200 rounded-md"></div>
+                      </div>
+                      <div className="h-6 w-16 bg-slate-200 rounded-full mt-1"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <h4 className="text-sm font-semibold text-slate-900">No deliveries yet</h4>
-              <p className="text-sm text-slate-500 mt-1 max-w-sm">
-                Click the "Add delivery" button above to create your first delivery.
-              </p>
-            </div>
+            ) : deliveries.length > 0 ? (
+              // Actual Deliveries
+              <div className="flex flex-col gap-3">
+                {deliveries.map((delivery) => (
+                  <DeliveryItem key={delivery.id} delivery={delivery} />
+                ))}
+              </div>
+            ) : (
+              // Empty State
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-7 h-7 text-slate-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+                    <path d="M15 18H9" />
+                    <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+                    <circle cx="17" cy="18" r="2" />
+                    <circle cx="7" cy="18" r="2" />
+                  </svg>
+                </div>
+                <h4 className="text-base font-semibold text-slate-900">
+                  No deliveries yet
+                </h4>
+                <p className="text-sm text-slate-500 mt-2 max-w-sm">
+                  Click the "Add delivery" button above to create your first
+                  delivery.
+                </p>
+              </div>
+            )}
           </div>
 
         </div>
       </main>
     </div>
-  )
+  );
 }
