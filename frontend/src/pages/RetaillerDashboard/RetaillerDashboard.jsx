@@ -28,30 +28,30 @@ export default function RetailerDashboard() {
         [
           {
             id: 1,
-            customerName: "John Doe",
-            phone: "0712345678",
-            address: "123 Main St, Cityville",
-            itemDescription: "Electronics",
+            customer_name: "John Doe",
+            customer_phone: "0712345678",
+            customer_address: "123 Main St, Cityville",
+            item_description: "Electronics",
             status: "Pending",
-            location: "Nairobi",
+            customer_location: "Nairobi",
           },
           {
             id: 2,
-            customerName: "Jane Smith",
-            phone: "0798765432",
-            address: "456 Elm St, Townsville",
-            itemDescription: "Clothing",
+            customer_name: "Jane Smith",
+            customer_phone: "0798765432",
+            customer_address: "456 Elm St, Townsville",
+            item_description: "Clothing",
             status: "In Transit",
-            location: "Mombasa",
+            customer_location: "Mombasa",
           },
           {
             id: 3,
-            customerName: "Alice Johnson",
-            phone: "0709876543",
-            address: "789 Oak St, Villageville",
-            itemDescription: "Books",
+            customer_name: "Alice Johnson",
+            customer_phone: "0709876543",
+            customer_address: "789 Oak St, Villageville",
+            item_description: "Books",
             status: "Delivered",
-            location: "Kisumu",
+            customer_location: "Kisumu",
           },
         ];
       setDeliveries(allDeliveries);
@@ -218,7 +218,9 @@ export default function RetailerDashboard() {
               // Actual Deliveries
               <div className="flex flex-col gap-3">
                 {deliveries.map((delivery) => (
-                  <DeliveryItem key={delivery.id} delivery={delivery} />
+                  <DeliveryItem key={delivery.id} 
+                  delivery={delivery}
+                   setDeliveries={setDeliveries} />
                 ))}
               </div>
             ) : (
