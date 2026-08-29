@@ -1,6 +1,6 @@
 import API from '../../services/api';
 
-export default function DispatcherDashboard() {
+export default function RetailerDashboard() {
     return (
         <div>
             <h1>Dispatcher Dashboard</h1>
