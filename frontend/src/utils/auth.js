@@ -33,3 +33,12 @@ export const getUserId = () => {
     const user = getUserFromToken();
     return user.id || null;
 }
+
+export const getFirstName = () => {
+    const user = getUserFromToken();
+    return user.first_name || null;
+}
+export const getLastName = () => {
+    const user = getUserFromToken();
+    return user.last_name || null;
+}
