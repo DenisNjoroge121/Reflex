@@ -6,8 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import EditDelivery from "./EditDeliveryItem"; 
-import API from "@/services/api";
+import EditDelivery from "./EditDeliveryItem";
 
 const getStatusStyle = (status) => {
   const s = status?.toLowerCase() || "";
@@ -22,23 +21,29 @@ export default function DeliveryItem({ setDeliveries, delivery }) {
   const statusStyle = getStatusStyle(delivery.status);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(null);
+  
+  // Standardized to boolean for cleaner logic
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
-const deleteDelivery = async (deliveryId) => {
-  setIsDeleting(deliveryId);
-
-  try {
-    // await API.delete(`/api/deliveries/${deliveryId}`);
-
-    setDeliveries((prev) =>
-      prev.filter((d) => d.id !== deliveryId)
-    );
-  } catch (error) {
-    console.error("Error deleting delivery:", error);
-  } finally {
-    setIsDeleting(null);
-  }
-};
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      // await API.delete(`/api/deliveries/${delivery.id}`);
+      
+      // Update parent state
+      setDeliveries((prev) => prev.filter((d) => d.id !== delivery.id));
+      
+      // Close both modals on success
+      setDeleteTargetId(null);
+      setIsViewOpen(false);
+    } catch (error) {
+      console.error("Error deleting delivery:", error);
+      // Optional: Add a toast notification here for the user
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <>
@@ -76,7 +81,9 @@ const deleteDelivery = async (deliveryId) => {
                 </svg>
               </div>
               <div>
-                <DialogTitle className="text-xl font-bold text-slate-900">{delivery.customer_name || "Unknown Customer"}</DialogTitle>
+                <DialogTitle className="text-xl font-bold text-slate-900">
+                  {delivery.customer_name || "Unknown Customer"}
+                </DialogTitle>
                 <p className="text-sm text-slate-500">Delivery Details</p>
               </div>
             </div>
@@ -97,30 +104,19 @@ const deleteDelivery = async (deliveryId) => {
             </div>
 
             <div className="space-y-4">
-              <DetailRow 
-                icon={<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />}
-                label="Phone"
-                value={delivery.customer_phone}
-              />
-              <DetailRow 
-                icon={<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></>}
-                label="Delivery Address"
-                value={delivery.customer_address || "No address provided"}
-              />
-              <DetailRow 
-                icon={<><path d="M16.5 9.4 7.55 4.24" /><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.29 7 12 12 20.71 7" /><line x1="12" y1="22" x2="12" y2="12" /></>}
-                label="Item Description"
-                value={delivery.item_description || "No description provided"}
-              />
+              <DetailRow icon={<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />} label="Phone" value={delivery.customer_phone} />
+              <DetailRow icon={<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></>} label="Delivery Address" value={delivery.customer_address || "No address provided"} />
+              <DetailRow icon={<><path d="M16.5 9.4 7.55 4.24" /><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.29 7 12 12 20.71 7" /><line x1="12" y1="22" x2="12" y2="12" /></>} label="Item Description" value={delivery.item_description || "No description provided"} />
             </div>
           </div>
 
+          {/* Footer Actions */}
           <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 mt-4">
             <button
               type="button"
               onClick={() => {
-                setIsViewOpen(false); 
-                setIsEditOpen(true);  
+                setIsViewOpen(false);
+                setIsEditOpen(true);
               }}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
             >
@@ -134,7 +130,7 @@ const deleteDelivery = async (deliveryId) => {
             <button
               type="button"
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors"
-             onClick={() => deleteDelivery(delivery.id)}
+              onClick={() => setDeleteTargetId(delivery.id)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6" />
@@ -142,25 +138,32 @@ const deleteDelivery = async (deliveryId) => {
                 <line x1="10" y1="11" x2="10" y2="17" />
                 <line x1="14" y1="11" x2="14" y2="17" />
               </svg>
-              {isDeleting === delivery.id ? "Deleting..." : "Delete"}
+              Delete
             </button>
-
           </div>
         </DialogContent>
       </Dialog>
 
       {/* 2. Edit Dialog */}
-      <EditDelivery 
-        open={isEditOpen} 
+      <EditDelivery
+        open={isEditOpen}
         onOpenChange={(isOpen) => {
           setIsEditOpen(isOpen);
-          // ✨ THE FIX: When the edit dialog closes, automatically reopen the view dialog
+          // Reopen view dialog when edit dialog closes
           if (!isOpen) {
             setIsViewOpen(true);
           }
-        }} 
-        setDeliveries={setDeliveries} 
-        delivery={delivery} 
+        }}
+        setDeliveries={setDeliveries}
+        delivery={delivery}
+      />
+
+      {/* 3. Confirm Delete Modal (MOVED OUTSIDE the Dialog to prevent layout/z-index issues) */}
+      <ConfirmDeleteModal
+        isOpen={deleteTargetId === delivery.id}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
       />
     </>
   );
@@ -178,6 +181,69 @@ function DetailRow({ icon, label, value }) {
       <div>
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</p>
         <p className="text-sm font-medium text-slate-900 leading-relaxed">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// Confirm Delete Modal Component
+function ConfirmDeleteModal({ isOpen, onClose, onConfirm, isDeleting }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        {/* Icon & Header */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-slate-900">Delete Delivery</h3>
+          <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+            Are you sure you want to delete this delivery record? This action cannot be undone.
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            type="button"
+            disabled={isDeleting}
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 disabled:opacity-50"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={isDeleting}
+            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 shadow-sm shadow-red-600/20 hover:shadow-red-600/30 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            onClick={onConfirm}
+          >
+            {isDeleting ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Deleting...
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Yes, Delete
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

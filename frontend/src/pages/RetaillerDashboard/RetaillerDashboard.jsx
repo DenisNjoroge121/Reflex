@@ -8,6 +8,8 @@ import React from "react";
 import { useEffect } from "react";
 import AddDelivery from "./components/AddDelivery";
 
+import { startWebsocket, stopWebSocket } from "@/services/websocket";
+
 export default function RetailerDashboard() {
   const firstName = "Samuel"; // getFirstName();
   const lastName = "Kima"; // getLastName();
@@ -18,6 +20,10 @@ export default function RetailerDashboard() {
   const [loadingDeliveries, setLoadingDeliveries] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+
+const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+
+const [connected, setConnected] = useState(false)
 
   const loadDeliveries = async () => {
     setLoadingDeliveries(true);
@@ -68,6 +74,28 @@ export default function RetailerDashboard() {
 
   useEffect(() => {
     loadDeliveries();
+
+    startWebsocket(
+    (message) => {
+      if (message.event === "deliveries"){
+        setDeliveries((prev) => [
+          message.data, ...prev
+        ])
+      }
+    },
+    () => {
+      setConnected(true)
+    },
+    
+    () => {
+      setConnected(false)
+    }
+    );
+    
+
+    return () => {
+      stopWebSocket()
+    }
   }, []);
 
   useEffect(
@@ -81,15 +109,32 @@ export default function RetailerDashboard() {
 
       return () => clearTimeout(timer);
     },
-    [message],
-    [messageType],
+    [message]
+    
   );
 
   const logOut = () => {
     localStorage.removeItem("token");
     localStorage.setItem("logout", Date.now());
+    setShowConfirmLogout(false);
     window.location.href = "/";
   };
+
+  useEffect(() =>{
+    // Listen for logout event from other tabs
+    const handleStorage = (event) => {
+      if (event.key === "logout") {
+        setShowConfirmLogout(false);
+        window.location.href = "/";
+      }
+    }
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top Navigation */}
@@ -120,6 +165,10 @@ export default function RetailerDashboard() {
                 Reflex
               </h1>
               <p className="text-xs text-slate-500 -mt-0.5">Retailer Portal</p>
+              {connected
+                    ? "🟢"
+                    : "🔴"
+                }
             </div>
           </div>
 
@@ -138,8 +187,11 @@ export default function RetailerDashboard() {
 
             <button
               type="button"
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition"
-            >
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-sm 
+              font-medium text-slate-700 bg-white border border-slate-200 
+              rounded-lg hover:bg-slate-50 hover:border-slate-400 transition"
+              onClick={() => setShowConfirmLogout(true)}
+           >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-4 h-4"
@@ -156,6 +208,13 @@ export default function RetailerDashboard() {
               </svg>
               Logout
             </button>
+
+            {showConfirmLogout && (
+  <ConfirmLogoutModal
+    setShowConfirmLogout={setShowConfirmLogout}
+    logOut={logOut}
+  />
+)}
           </div>
         </div>
       </header>
@@ -173,12 +232,9 @@ export default function RetailerDashboard() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
-          >
+        
             <AddDelivery setDeliveries={setDeliveries} />
-          </button>
+         
         </div>
 
         {/* Deliveries Section */}
@@ -189,7 +245,7 @@ export default function RetailerDashboard() {
               Your Deliveries
             </h3>
             <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-              {allDeliveriesCount} total
+              {deliveries.length} total
             </span>
           </div>
 
@@ -257,6 +313,78 @@ export default function RetailerDashboard() {
 
         </div>
       </main>
+    </div>
+  );
+}
+
+
+function ConfirmLogoutModal({ setShowConfirmLogout, logOut }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Icon & Header */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="w-6 h-6" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-slate-900">
+            Confirm Logout
+          </h3>
+          <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+            Are you sure you want to log out of your account? You will need to sign in again to access your dashboard.
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            type="button"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+            onClick={() => setShowConfirmLogout(false)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 shadow-sm shadow-red-600/20 hover:shadow-red-600/30 transition-all duration-200 flex items-center justify-center gap-2"
+            onClick={() => {
+              setShowConfirmLogout(false);
+              logOut();
+            }}
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="w-4 h-4" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Yes, Log Out
+          </button>
+        </div>
+        
+      </div>
     </div>
   );
 }
