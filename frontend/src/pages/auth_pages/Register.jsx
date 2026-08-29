@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import RegisterForm from "./RegForm";
+import API from "../../services/api";
 
 import { useNavigate } from "react-router-dom";
 
@@ -38,8 +39,8 @@ export default function Register({ switchToLogin }) {
       lastName: lastName.trim(),
       phone: phone.trim(),
       email: email.trim(),
-      password: password,
-      confirmPassword: confirmPassword,
+      password: password.trim(),
+      confirmPassword: confirmPassword.trim(),
     };
 
     const allEmpty = Object.values(values).every((v) => !v);
@@ -97,6 +98,8 @@ export default function Register({ switchToLogin }) {
         phone: `254${values.phone.slice(1)}`,
         password: values.password,
       };
+
+     
 
       const res = await API.post("/auth/register", payload);
 
