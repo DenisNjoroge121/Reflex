@@ -37,7 +37,7 @@ export default function RiderDashboard() {
 
         setError(
           err.response?.data?.message ||
-            'Unable to load deliveries.',
+          'Unable to load deliveries.',
         )
       } finally {
         setLoading(false)
