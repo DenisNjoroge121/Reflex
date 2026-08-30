@@ -23,6 +23,12 @@ const deliverySchema = new mongoose.Schema(
       required: true
     },
 
+    rider: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Rider",
+      default: null
+    },
+
     pickup_location: {
       type: String,
       required: true
@@ -43,14 +49,7 @@ const deliverySchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: [
-        "Pending",
-        "Assigned",
-        "Picked Up",
-        "Out for Delivery",
-        "Delivered",
-        "Cancelled"
-      ],
+      enum: DELIVERY_STATUS,
       default: "Pending"
     }
   },

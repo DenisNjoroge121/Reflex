@@ -23,27 +23,27 @@ export default function RiderDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    const fetchDeliveries = async () => {
-      try {
-        setLoading(true)
-        setError('')
+  const fetchDeliveries = async () => {
+    try {
+      setLoading(true)
+      setError('')
 
-        const response = await API.get('/api/deliveries')
+      const response = await API.get('/api/riders/deliveries')
 
-        setDeliveries(response.data?.deliveries || [])
-      } catch (err) {
-        console.error('Failed to load rider deliveries:', err)
+      setDeliveries(response.data?.deliveries || [])
+    } catch (err) {
+      console.error('Failed to load rider deliveries:', err)
 
-        setError(
-          err.response?.data?.message ||
-          'Unable to load deliveries.',
-        )
-      } finally {
-        setLoading(false)
-      }
+      setError(
+        err.response?.data?.message ||
+          'Unable to load your deliveries.',
+      )
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchDeliveries()
   }, [])
 
@@ -68,6 +68,18 @@ export default function RiderDashboard() {
     [deliveries],
   )
 
+  const handleStatusUpdated = (updatedDelivery) => {
+    setDeliveries((currentDeliveries) =>
+      currentDeliveries.map((delivery) =>
+        delivery._id === updatedDelivery._id
+          ? updatedDelivery
+          : delivery,
+      ),
+    )
+
+    setSelectedDelivery(updatedDelivery)
+  }
+
   return (
     <section>
       <div className="mb-8">
@@ -76,7 +88,7 @@ export default function RiderDashboard() {
         </h2>
 
         <p className="mt-2 text-slate-500">
-          View assigned deliveries and update delivery progress.
+          View your assigned deliveries and update delivery progress.
         </p>
       </div>
 
@@ -109,7 +121,7 @@ export default function RiderDashboard() {
           </h3>
 
           <p className="mt-1 text-sm text-slate-500">
-            Deliveries assigned to the rider will appear here.
+            Deliveries assigned to your rider account will appear here.
           </p>
         </div>
 
@@ -120,7 +132,7 @@ export default function RiderDashboard() {
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Fetching delivery data from the backend.
+              Fetching your delivery assignments.
             </p>
           </div>
         )}
@@ -131,9 +143,13 @@ export default function RiderDashboard() {
               {error}
             </p>
 
-            <p className="mt-1 text-sm text-slate-500">
-              The backend may still be under development.
-            </p>
+            <button
+              type="button"
+              onClick={fetchDeliveries}
+              className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+            >
+              Try again
+            </button>
           </div>
         )}
 
@@ -144,8 +160,7 @@ export default function RiderDashboard() {
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Assigned deliveries will appear here once they are
-              available.
+              New deliveries assigned to you will appear here.
             </p>
           </div>
         )}
@@ -166,6 +181,7 @@ export default function RiderDashboard() {
       <RiderDeliveryDetails
         delivery={selectedDelivery}
         onClose={() => setSelectedDelivery(null)}
+        onStatusUpdated={handleStatusUpdated}
       />
     </section>
   )

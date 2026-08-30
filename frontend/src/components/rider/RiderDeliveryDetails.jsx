@@ -1,11 +1,62 @@
+import { useState } from 'react'
+import API from '../../services/api'
 import DeliveryStatusBadge from './DeliveryStatusBadge'
+
+const STATUS_FLOW = [
+  'Assigned',
+  'Picked Up',
+  'Out for Delivery',
+  'Delivered',
+]
 
 export default function RiderDeliveryDetails({
   delivery,
   onClose,
+  onStatusUpdated,
 }) {
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
   if (!delivery) {
     return null
+  }
+
+  const handleStatusUpdate = async (status) => {
+    if (delivery.status === status) {
+      return
+    }
+
+    try {
+      setUpdatingStatus(true)
+      setError('')
+      setSuccess('')
+
+      const response = await API.patch(
+        `/api/riders/deliveries/${delivery._id}/status`,
+        {
+          status,
+        },
+      )
+
+      const updatedDelivery =
+        response.data?.delivery || response.data?.updatedDelivery
+
+      if (updatedDelivery) {
+        onStatusUpdated?.(updatedDelivery)
+      }
+
+      setSuccess(`Delivery status updated to "${status}".`)
+    } catch (err) {
+      console.error('Failed to update delivery status:', err)
+
+      setError(
+        err.response?.data?.message ||
+          'Unable to update delivery status.',
+      )
+    } finally {
+      setUpdatingStatus(false)
+    }
   }
 
   return (
@@ -16,7 +67,7 @@ export default function RiderDeliveryDetails({
             Delivery Details
           </p>
 
-          <h3 className="mt-1 text-lg font-semibold text-slate-900">
+          <h3 className="mt-1 break-all text-lg font-semibold text-slate-900">
             {delivery._id}
           </h3>
         </div>
@@ -29,6 +80,18 @@ export default function RiderDeliveryDetails({
           Close
         </button>
       </div>
+
+      {error && (
+        <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mt-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          {success}
+        </div>
+      )}
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <div>
@@ -100,25 +163,39 @@ export default function RiderDeliveryDetails({
         </h4>
 
         <p className="mt-1 text-sm text-slate-500">
-          Status update controls will be connected when the backend
-          status endpoint is available.
+          Update the delivery status as you complete each stage.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {['Assigned', 'Picked Up', 'Out for Delivery', 'Delivered'].map(
-            (status) => (
-              <span
+          {STATUS_FLOW.map((status) => {
+            const isCurrent = delivery.status === status
+            const isDisabled =
+              updatingStatus ||
+              delivery.status === 'Delivered' ||
+              delivery.status === 'Cancelled'
+
+            return (
+              <button
                 key={status}
-                className={`rounded-lg border px-3 py-2 text-sm ${
-                  delivery.status === status
+                type="button"
+                disabled={isDisabled}
+                onClick={() => handleStatusUpdate(status)}
+                className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                  isCurrent
                     ? 'border-slate-900 bg-slate-900 text-white'
-                    : 'border-slate-200 bg-slate-50 text-slate-500'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                } ${
+                  isDisabled
+                    ? 'cursor-not-allowed opacity-60'
+                    : ''
                 }`}
               >
-                {status}
-              </span>
-            ),
-          )}
+                {updatingStatus && isCurrent
+                  ? 'Updating...'
+                  : status}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -128,8 +205,8 @@ export default function RiderDeliveryDetails({
         </h4>
 
         <p className="mt-1 text-sm text-slate-500">
-          Proof of Delivery submission will be connected when the
-          backend POD endpoint is available.
+          Proof of Delivery submission can be connected here when
+          the POD endpoint is implemented.
         </p>
       </div>
     </section>
