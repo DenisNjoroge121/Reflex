@@ -25,7 +25,7 @@ export default function LoginForm({
            }, 3000);
            return () => clearTimeout(timer);
          }
-       }, [message, setMessage]);
+       }, [message]);
   
      return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">

@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function RegForm({
@@ -30,14 +30,14 @@ export default function RegForm({
   const [showPassC, setShowPassC] = useState(false);
 
   // time ot for message to disappear
-  React.useEffect(() => {
+  useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
         setMessage("");
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [message, setMessage]);
+  }, [message]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
