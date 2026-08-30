@@ -1,6 +1,4 @@
-import { error } from "node:console";
-
-const WS_URL = process.env.WS_URL;
+const WS_URL = import.meta.env.VITE_WS_URL;
 
 let socket = null;
 
@@ -12,93 +10,81 @@ let openHandler = null;
 
 let closeHandler = null;
 
-
-
 let intentionalClose = false;
 
-
-
-
 const connect = () => {
-    console.log("Connecting websocket")
+  console.log("Connecting websocket");
 
-    socket = new WebSocket(WS_URL);
+  socket = new WebSocket(WS_URL);
 
-    socket.addEventListener("open", () => {
-        console.log("Websocket connected")
+  socket.addEventListener("open", () => {
+    console.log("Websocket connected");
 
-        joinAllRooms();
+    joinAllRooms();
 
-        if (openHandler){
-            openHandler();
-        }
-    });
+    if (openHandler) {
+      openHandler();
+    }
+  });
 
+  socket.addEventListener("message", (event) => {
+    const message = JSON.parse(event.data);
 
-    socket.addEventListener("message", (event) => {
-        const message = JSON.parse(event.data);
+    if (messageHandler) {
+      messageHandler(message);
+    }
+  });
 
-        if (messageHandler){
-            messageHandler(message)
-        }
-    });
+  socket.addEventListener("close", () => {
+    console.log("Websocket disconnected");
 
-    socket.addEventListener("close", () => {
-        console.log("Websocket disconnected")
-
-        if (closeHandler) {
-            closeHandler();
-        }
-
-        if (!intentionalClose){
-            reconnect()
-        }
-    });
-
-
-    socket.addEventListener("error", () => {
-        console.log("Websocket error", error)
-    })
-}
-
-
-const reconnect = () => {
-    if (reconnectTimer) {
-        return;
+    if (closeHandler) {
+      closeHandler();
     }
 
-    console.log("Attempting to reconnect in 3 seconds")
+    if (!intentionalClose) {
+      reconnect();
+    }
+  });
 
-    reconnectTimer = setTimeout(() => {
-        reconnectTimer = null;
-        connect();
-    }, 3000)
+  socket.addEventListener("error", (error) => {
+    console.error("Websocket error", error);
+  });
+};
+
+const reconnect = () => {
+  if (reconnectTimer) {
+    return;
+  }
+
+  console.log("Attempting to reconnect in 3 seconds");
+
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    connect();
+  }, 3000);
 };
 
 export const startWebsocket = (onMessage, onOpen, onClose) => {
-    intentionalClose = false;
-    messageHandler = onMessage;
-    openHandler = onOpen;
-    closeHandler = onClose;
-   
-    connect();
+  intentionalClose = false;
+
+  messageHandler = onMessage;
+  openHandler = onOpen;
+  closeHandler = onClose;
+
+  connect();
 };
 
 export const stopWebSocket = () => {
-    intentionalClose = true;
+  intentionalClose = true;
 
-    if (reconnectTimer) {
-        clearTimeout(reconnectTimer)
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
 
-        reconnectTimer = null;
-    }
-
-    if (socket) {
-        socket.close();
-
-        socket = null;
-    }
-
-    
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
 };
-

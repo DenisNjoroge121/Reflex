@@ -29,10 +29,10 @@ export default function DeliveryItem({ setDeliveries, delivery }) {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      // await API.delete(`/api/deliveries/${delivery.id}`);
+      await API.delete(`/deliveries/${delivery._id}`);
       
       // Update parent state
-      setDeliveries((prev) => prev.filter((d) => d.id !== delivery.id));
+      setDeliveries((prev) => prev.filter((d) => d.id !== delivery._id));
       
       // Close both modals on success
       setDeleteTargetId(null);
@@ -130,7 +130,7 @@ export default function DeliveryItem({ setDeliveries, delivery }) {
             <button
               type="button"
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors"
-              onClick={() => setDeleteTargetId(delivery.id)}
+              onClick={() => setDeleteTargetId(delivery._id)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6" />
@@ -160,7 +160,7 @@ export default function DeliveryItem({ setDeliveries, delivery }) {
 
       {/* 3. Confirm Delete Modal (MOVED OUTSIDE the Dialog to prevent layout/z-index issues) */}
       <ConfirmDeleteModal
-        isOpen={deleteTargetId === delivery.id}
+        isOpen={deleteTargetId === delivery._id}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={handleDelete}
         isDeleting={isDeleting}

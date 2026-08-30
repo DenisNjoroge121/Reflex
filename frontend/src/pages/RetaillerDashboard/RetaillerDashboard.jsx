@@ -11,57 +11,26 @@ import AddDelivery from "./components/AddDelivery";
 import { startWebsocket, stopWebSocket } from "@/services/websocket";
 
 export default function RetailerDashboard() {
-  const firstName = "Samuel"; // getFirstName();
-  const lastName = "Kima"; // getLastName();
+  const firstName =  getFirstName();
+  const lastName = getLastName();
 
   const [deliveries, setDeliveries] = useState([]);
 
-  const [allDeliveriesCount, setAllDeliveriesCount] = useState(null);
   const [loadingDeliveries, setLoadingDeliveries] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
 
-const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+  const [showConfirmLogout, setShowConfirmLogout] = useState(false);
 
-const [connected, setConnected] = useState(false)
+  const [connected, setConnected] = useState(false);
 
   const loadDeliveries = async () => {
     setLoadingDeliveries(true);
     try {
-      //   const res = await API.get("/deliveries");
+      const res = await API.get("/deliveries");
       const allDeliveries =
-        //   res.data?.deliveries ||
-        [
-          {
-            id: 1,
-            customer_name: "John Doe",
-            customer_phone: "0712345678",
-            customer_address: "123 Main St, Cityville",
-            item_description: "Electronics",
-            status: "Pending",
-            customer_location: "Nairobi",
-          },
-          {
-            id: 2,
-            customer_name: "Jane Smith",
-            customer_phone: "0798765432",
-            customer_address: "456 Elm St, Townsville",
-            item_description: "Clothing",
-            status: "In Transit",
-            customer_location: "Mombasa",
-          },
-          {
-            id: 3,
-            customer_name: "Alice Johnson",
-            customer_phone: "0709876543",
-            customer_address: "789 Oak St, Villageville",
-            item_description: "Books",
-            status: "Delivered",
-            customer_location: "Kisumu",
-          },
-        ];
+        res.data?.deliveries || [];
       setDeliveries(allDeliveries);
-      setAllDeliveriesCount(allDeliveries.length);
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to get deliveries";
@@ -76,42 +45,45 @@ const [connected, setConnected] = useState(false)
     loadDeliveries();
 
     startWebsocket(
-    (message) => {
-      if (message.event === "deliveries"){
-        setDeliveries((prev) => [
-          message.data, ...prev
-        ])
-      }
-    },
-    () => {
-      setConnected(true)
-    },
-    
-    () => {
-      setConnected(false)
-    }
+      (message) => {
+        if (message.event === "deliveries") {
+          setDeliveries((prev) => {
+            const exists = prev.some(
+              (delivery) => delivery.id === message.data.id,
+            );
+
+            if (exists) {
+              return prev;
+            }
+
+            return [message.data, ...prev];
+          });
+        }
+      },
+      () => {
+        setConnected(true);
+      },
+
+      () => {
+        setConnected(false);
+      },
     );
-    
 
     return () => {
-      stopWebSocket()
-    }
+      stopWebSocket();
+    };
   }, []);
 
-  useEffect(
-    () => {
-      if (!message) return;
+  useEffect(() => {
+    if (!message) return;
 
-      const timer = setTimeout(() => {
-        setMessage("");
-        setMessageType("");
-      }, 3000);
+    const timer = setTimeout(() => {
+      setMessage("");
+      setMessageType("");
+    }, 3000);
 
-      return () => clearTimeout(timer);
-    },
-    [message]
-    
-  );
+    return () => clearTimeout(timer);
+  }, [message]);
 
   const logOut = () => {
     localStorage.removeItem("token");
@@ -120,29 +92,28 @@ const [connected, setConnected] = useState(false)
     window.location.href = "/";
   };
 
-  useEffect(() =>{
+  useEffect(() => {
     // Listen for logout event from other tabs
     const handleStorage = (event) => {
       if (event.key === "logout") {
         setShowConfirmLogout(false);
         window.location.href = "/";
       }
-    }
+    };
     window.addEventListener("storage", handleStorage);
     return () => {
       window.removeEventListener("storage", handleStorage);
     };
   }, []);
 
-
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-200">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo / Title */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center text-white">
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm shadow-indigo-500/20">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-5 h-5"
@@ -160,38 +131,54 @@ const [connected, setConnected] = useState(false)
                 <circle cx="7" cy="18" r="2" />
               </svg>
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-900 leading-tight">
-                Reflex
-              </h1>
-              <p className="text-xs text-slate-500 -mt-0.5">Retailer Portal</p>
-              {connected
-                    ? "🟢"
-                    : "🔴"
-                }
+
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-slate-900 leading-tight">
+                  Reflex
+                </h1>
+
+                {/* Modern Connection Status Badge */}
+                <div
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${
+                    connected
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-rose-50 text-rose-700 border-rose-200"
+                  }`}
+                >
+                  <span className="relative flex h-1.5 w-1.5">
+                    {connected && (
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    )}
+                    <span
+                      className={`relative inline-flex rounded-full h-1.5 w-1.5 ${connected ? "bg-emerald-500" : "bg-rose-500"}`}
+                    ></span>
+                  </span>
+                  {connected ? "Online" : "Offline"}
+                </div>
+              </div>
+              <p className="text-xs text-slate-500">Retailer Portal</p>
             </div>
           </div>
 
           {/* User + Logout */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                {firstName.charAt(0).toUpperCase()}
-                {lastName.charAt(0).toUpperCase()}
+              <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-semibold ring-2 ring-white">
+               {firstName?.charAt(0).toUpperCase() || "R"}
+               {lastName?.charAt(0).toUpperCase() || "S"}
               </div>
               <div className="text-sm">
-                <p className="font-medium text-slate-900 leading-tight">{`${firstName} ${lastName}`}</p>
+                <p className="font-medium text-slate-900 leading-tight">{`${firstName || "Reflex"} ${lastName || "System"}`}</p>
                 <p className="text-xs text-slate-500">Retailer</p>
               </div>
             </div>
 
             <button
               type="button"
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-sm 
-              font-medium text-slate-700 bg-white border border-slate-200 
-              rounded-lg hover:bg-slate-50 hover:border-slate-400 transition"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all"
               onClick={() => setShowConfirmLogout(true)}
-           >
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-4 h-4"
@@ -208,15 +195,16 @@ const [connected, setConnected] = useState(false)
               </svg>
               Logout
             </button>
-
-            {showConfirmLogout && (
-  <ConfirmLogoutModal
-    setShowConfirmLogout={setShowConfirmLogout}
-    logOut={logOut}
-  />
-)}
           </div>
         </div>
+
+        {/* Note: It's best practice to render the modal outside the header div, at the root of your component */}
+        {showConfirmLogout && (
+          <ConfirmLogoutModal
+            setShowConfirmLogout={setShowConfirmLogout}
+            logOut={logOut}
+          />
+        )}
       </header>
 
       {/* Main Content */}
@@ -232,9 +220,7 @@ const [connected, setConnected] = useState(false)
             </p>
           </div>
 
-        
-            <AddDelivery setDeliveries={setDeliveries} />
-         
+          <AddDelivery setDeliveries={setDeliveries} />
         </div>
 
         {/* Deliveries Section */}
@@ -249,14 +235,14 @@ const [connected, setConnected] = useState(false)
             </span>
           </div>
 
-                   {/* Deliveries Container */}
+          {/* Deliveries Container */}
           <div className="p-6">
             {loadingDeliveries ? (
               // Skeleton Loader
               <div className="flex flex-col gap-3">
                 {[1, 2, 3].map((i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className="w-full p-4 bg-white border border-slate-200 rounded-xl animate-pulse"
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -274,9 +260,11 @@ const [connected, setConnected] = useState(false)
               // Actual Deliveries
               <div className="flex flex-col gap-3">
                 {deliveries.map((delivery) => (
-                  <DeliveryItem key={delivery.id} 
-                  delivery={delivery}
-                   setDeliveries={setDeliveries} />
+                  <DeliveryItem
+                    key={delivery._id}
+                    delivery={delivery}
+                    setDeliveries={setDeliveries}
+                  />
                 ))}
               </div>
             ) : (
@@ -310,30 +298,27 @@ const [connected, setConnected] = useState(false)
               </div>
             )}
           </div>
-
         </div>
       </main>
     </div>
   );
 }
 
-
 function ConfirmLogoutModal({ setShowConfirmLogout, logOut }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all">
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-        
         {/* Icon & Header */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="w-6 h-6" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             >
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -341,11 +326,10 @@ function ConfirmLogoutModal({ setShowConfirmLogout, logOut }) {
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-slate-900">
-            Confirm Logout
-          </h3>
+          <h3 className="text-xl font-bold text-slate-900">Confirm Logout</h3>
           <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-            Are you sure you want to log out of your account? You will need to sign in again to access your dashboard.
+            Are you sure you want to log out of your account? You will need to
+            sign in again to access your dashboard.
           </p>
         </div>
 
@@ -366,14 +350,14 @@ function ConfirmLogoutModal({ setShowConfirmLogout, logOut }) {
               logOut();
             }}
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="w-4 h-4" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             >
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -383,7 +367,6 @@ function ConfirmLogoutModal({ setShowConfirmLogout, logOut }) {
             Yes, Log Out
           </button>
         </div>
-        
       </div>
     </div>
   );

@@ -90,13 +90,12 @@ export default function EditDelivery({ open, onOpenChange, setDeliveries, delive
         item_description: values.itemDescription,
       };
 
-      // const res = await API.put(`/deliveries/${delivery.id}`, payload);
+      const res = await API.put(`/deliveries/${delivery._id}`, payload);
       
-      // Mock update for demonstration (replace with res.data.delivery)
-      const updatedDelivery = { ...delivery, ...payload };
+      
 
       setDeliveries((prev) =>
-        prev.map((item) => (item.id === delivery.id ? updatedDelivery : item))
+        prev.map((item) => (item.id === delivery.id ? res.data.delivery : item))
       );
 
       setMessage("Delivery updated successfully!");

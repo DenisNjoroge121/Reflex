@@ -1,44 +1,52 @@
 export const decodeToken = (token) => {
     try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload;        
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return payload;
     } catch (error) {
-        return null;        
+        return null;
     }
 };
 
 export const getUserFromToken = () => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
+
     if (!token) return null;
 
     return decodeToken(token);
-}
+};
 
 export const getUserRole = () => {
     const user = getUserFromToken();
+
     return user?.role || null;
-}
+};
 
 export const isRider = () => {
-    return getUserRole === "rider";
-}
+    return getUserRole() === "rider";
+};
+
 export const isDispatcher = () => {
-    return getUserRole === "dispatcher";
-}
+    return getUserRole() === "dispatcher";
+};
+
 export const isRetailer = () => {
-    return getUserRole === "retailer";
-}
+    return getUserRole() === "retailer";
+};
 
 export const getUserId = () => {
     const user = getUserFromToken();
-    return user.id || null;
-}
+
+    return user?._id || null;
+};
 
 export const getFirstName = () => {
     const user = getUserFromToken();
-    return user.first_name || null;
-}
+
+    return user?.first_name || null;
+};
+
 export const getLastName = () => {
     const user = getUserFromToken();
-    return user.last_name || null;
-}
+
+    return user?.last_name || null;
+};
