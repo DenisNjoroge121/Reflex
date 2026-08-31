@@ -8,10 +8,10 @@ import React from "react";
 import { useEffect } from "react";
 import AddDelivery from "./components/AddDelivery";
 
-import { startWebsocket, stopWebSocket } from "@/services/websocket";
+import { startSocket, stopSocket } from "@/services/websocket";
 
 export default function RetailerDashboard() {
-  const firstName =  getFirstName();
+  const firstName = getFirstName();
   const lastName = getLastName();
 
   const [deliveries, setDeliveries] = useState([]);
@@ -28,8 +28,7 @@ export default function RetailerDashboard() {
     setLoadingDeliveries(true);
     try {
       const res = await API.get("/deliveries");
-      const allDeliveries =
-        res.data?.deliveries || [];
+      const allDeliveries = res.data?.deliveries || [];
       setDeliveries(allDeliveries);
     } catch (error) {
       const message =
@@ -44,33 +43,29 @@ export default function RetailerDashboard() {
   useEffect(() => {
     loadDeliveries();
 
-    startWebsocket(
-      (message) => {
-        if (message.event === "deliveries") {
-          setDeliveries((prev) => {
-            const exists = prev.some(
-              (delivery) => delivery.id === message.data.id,
-            );
+    const socket = startSocket();
 
-            if (exists) {
-              return prev;
-            }
+    socket.on("connect", () => {
+      setConnected(true);
+    });
+    socket.on("disconnect", () => {
+      setConnected(false);
+    });
 
-            return [message.data, ...prev];
-          });
+    socket.on("deliveries", (payload) => {
+      setDeliveries((prev) => {
+        const exists = prev.some((item) => item._id === payload.data._id);
+
+        if (exists) {
+          return prev;
         }
-      },
-      () => {
-        setConnected(true);
-      },
 
-      () => {
-        setConnected(false);
-      },
-    );
+        return [payload.data, ...prev];
+      });
+    });
 
     return () => {
-      stopWebSocket();
+      stopSocket();
     };
   }, []);
 
@@ -165,8 +160,8 @@ export default function RetailerDashboard() {
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-3">
               <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-semibold ring-2 ring-white">
-               {firstName?.charAt(0).toUpperCase() || "R"}
-               {lastName?.charAt(0).toUpperCase() || "S"}
+                {firstName?.charAt(0).toUpperCase() || "R"}
+                {lastName?.charAt(0).toUpperCase() || "S"}
               </div>
               <div className="text-sm">
                 <p className="font-medium text-slate-900 leading-tight">{`${firstName || "Reflex"} ${lastName || "System"}`}</p>
