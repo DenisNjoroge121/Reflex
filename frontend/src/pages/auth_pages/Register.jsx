@@ -12,6 +12,12 @@ export default function Register({ switchToLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("Retailer");
+  const [storeName, setStoreName] = useState("");
+  const [storeLocation, setStoreLocation] = useState("");
+  const [department, setDepartment] = useState("");
+  const [vehicleType, setVehicleType] = useState("");
+  const [licensePlate, setLicensePlate] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -31,16 +37,14 @@ export default function Register({ switchToLogin }) {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^(07|01)\d{8}$/;
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-
     const values = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       phone: phone.trim(),
       email: email.trim(),
-      password: password.trim(),
-      confirmPassword: confirmPassword.trim(),
+      password,
+      confirmPassword,
+      role,
     };
 
     const allEmpty = Object.values(values).every((v) => !v);
@@ -60,6 +64,16 @@ export default function Register({ switchToLogin }) {
     if (!values.password) newErrors.password = "Password required";
     if (!values.confirmPassword)
       newErrors.confirmPassword = "Password required";
+    if (role === "Retailer" && !storeName.trim())
+      newErrors.storeName = "Store name is required";
+    if (role === "Retailer" && !storeLocation.trim())
+      newErrors.storeLocation = "Store location is required";
+    if (role === "Dispatcher" && !department.trim())
+      newErrors.department = "Department is required";
+    if (role === "Rider" && !vehicleType.trim())
+      newErrors.vehicleType = "Vehicle type is required";
+    if (role === "Rider" && !licensePlate.trim())
+      newErrors.licensePlate = "License plate is required";
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
@@ -77,8 +91,8 @@ export default function Register({ switchToLogin }) {
     else if (!phoneRegex.test(values.phone))
       newErrors.phone = "Invalid phone number";
 
-    if (!passwordRegex.test(values.password))
-      newErrors.password = "Weak password";
+    if (values.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
     if (values.password !== values.confirmPassword)
       newErrors.confirmPassword = "Password don'r match";
 
@@ -92,16 +106,30 @@ export default function Register({ switchToLogin }) {
       setLoading(true);
 
       const payload = {
-        firstName: values.firstName,
-        lastName: values.lastName,
+        full_name: `${values.firstName} ${values.lastName}`,
         email: values.email,
         phone: `254${values.phone.slice(1)}`,
         password: values.password,
+        role,
       };
+
+      if (role === "Retailer") {
+        payload.store_name = storeName.trim();
+        payload.store_location = storeLocation.trim();
+      }
+
+      if (role === "Dispatcher") {
+        payload.department = department.trim();
+      }
+
+      if (role === "Rider") {
+        payload.vehicle_type = vehicleType.trim();
+        payload.license_plate = licensePlate.trim();
+      }
 
      
 
-      const res = await API.post("/auth/register", payload);
+      const res = await API.post("/api/auth/register", payload);
 
       setMessage(res.data.success || "Signup successfull. Redirecting...");
       setMessageType("success");
@@ -129,6 +157,18 @@ export default function Register({ switchToLogin }) {
       setPassword={setPassword}
       confirmPassword={confirmPassword}
       setConfirmPassword={setConfirmPassword}
+      role={role}
+      setRole={setRole}
+      storeName={storeName}
+      setStoreName={setStoreName}
+      storeLocation={storeLocation}
+      setStoreLocation={setStoreLocation}
+      department={department}
+      setDepartment={setDepartment}
+      vehicleType={vehicleType}
+      setVehicleType={setVehicleType}
+      licensePlate={licensePlate}
+      setLicensePlate={setLicensePlate}
       loading={loading}
       setLoading={setLoading}
       errors={errors}

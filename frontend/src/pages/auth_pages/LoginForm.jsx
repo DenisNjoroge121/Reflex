@@ -82,8 +82,9 @@ export default function LoginForm({
                      <div className="relative">
                        <input
                          type={showPass ? "text" : "password"}
+                         autoComplete="current-password"
                          className="w-full px-3.5 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                         placeholder="••••••••"
+                         placeholder="Enter your password"
                          value={password}
                          onChange={(e) => {
                            setPassword(e.target.value);

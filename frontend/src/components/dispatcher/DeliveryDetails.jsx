@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react'
+import API from '../../services/api'
+
 const statusStyles = {
   Pending: 'bg-amber-50 text-amber-700 ring-amber-600/20',
   Assigned: 'bg-blue-50 text-blue-700 ring-blue-600/20',
@@ -44,8 +47,62 @@ function DetailItem({ label, children }) {
 export default function DeliveryDetails({
   delivery,
   onClose,
+  onAssigned,
 }) {
+  const [riders, setRiders] = useState([])
+  const [selectedRiderId, setSelectedRiderId] = useState('')
+  const [loadingRiders, setLoadingRiders] = useState(false)
+  const [assigning, setAssigning] = useState(false)
+  const [assignmentError, setAssignmentError] = useState('')
+  const deliveryId = delivery?._id
+  const canAssign = delivery?.status === 'Pending'
+
+  useEffect(() => {
+    if (!canAssign) return
+
+    const fetchRiders = async () => {
+      try {
+        setLoadingRiders(true)
+        setAssignmentError('')
+        const response = await API.get('/api/riders/available')
+        setRiders(response.data?.riders || [])
+      } catch (err) {
+        setAssignmentError(
+          err.response?.data?.message || 'Unable to load available riders.',
+        )
+      } finally {
+        setLoadingRiders(false)
+      }
+    }
+
+    fetchRiders()
+  }, [canAssign, deliveryId])
+
   if (!delivery) return null
+
+  const handleAssign = async () => {
+    if (!selectedRiderId) {
+      setAssignmentError('Choose a rider before assigning this delivery.')
+      return
+    }
+
+    try {
+      setAssigning(true)
+      setAssignmentError('')
+      const response = await API.patch(`/api/deliveries/${delivery._id}/assign`, {
+        rider_id: selectedRiderId,
+      })
+      const updatedDelivery = response.data?.delivery
+
+      if (updatedDelivery) onAssigned?.(updatedDelivery)
+    } catch (err) {
+      setAssignmentError(
+        err.response?.data?.message || 'Unable to assign this delivery.',
+      )
+    } finally {
+      setAssigning(false)
+    }
+  }
 
   return (
     <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -114,21 +171,46 @@ export default function DeliveryDetails({
         </h4>
 
         <p className="mt-1 text-sm text-slate-500">
-          Rider assignment and reassignment will be connected
-          to the specified assignment API when that backend
-          functionality is available.
+          {delivery.status === 'Pending'
+            ? 'Choose an available rider to assign this delivery.'
+            : 'This delivery has already been assigned or completed.'}
         </p>
 
-        <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5">
-          <p className="text-sm font-medium text-slate-700">
-            Assignment controls
+        {assignmentError && (
+          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {assignmentError}
           </p>
+        )}
 
-          <p className="mt-1 text-sm text-slate-500">
-            Available riders and assignment actions will appear
-            here.
-          </p>
-        </div>
+        {delivery.status === 'Pending' && (
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <select
+              value={selectedRiderId}
+              onChange={(event) => setSelectedRiderId(event.target.value)}
+              disabled={loadingRiders || assigning}
+              className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
+              aria-label="Select a rider"
+            >
+              <option value="">
+                {loadingRiders ? 'Loading available riders…' : 'Select a rider'}
+              </option>
+              {riders.map((rider) => (
+                <option key={rider._id} value={rider._id}>
+                  {rider.user?.full_name || rider._id} — {rider.vehicle_type || 'vehicle'}
+                </option>
+              ))}
+            </select>
+
+            <button
+              type="button"
+              onClick={handleAssign}
+              disabled={loadingRiders || assigning || riders.length === 0}
+              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {assigning ? 'Assigning…' : 'Assign rider'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -23,6 +23,7 @@ export default function DispatcherDashboard() {
   const [selectedDelivery, setSelectedDelivery] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [ridersRefreshKey, setRidersRefreshKey] = useState(0)
 
   useEffect(() => {
     const fetchDeliveries = async () => {
@@ -80,6 +81,18 @@ export default function DispatcherDashboard() {
       (delivery) => delivery.status === selectedStatus,
     )
   }, [deliveries, selectedStatus])
+
+  const handleDeliveryAssigned = (updatedDelivery) => {
+    setDeliveries((currentDeliveries) =>
+      currentDeliveries.map((delivery) =>
+        delivery._id === updatedDelivery._id
+          ? updatedDelivery
+          : delivery,
+      ),
+    )
+    setSelectedDelivery(updatedDelivery)
+    setRidersRefreshKey((currentKey) => currentKey + 1)
+  }
 
   return (
     <section>
@@ -168,11 +181,13 @@ export default function DispatcherDashboard() {
       </div>
 
       <DeliveryDetails
+        key={selectedDelivery?._id || 'no-delivery-selected'}
         delivery={selectedDelivery}
         onClose={() => setSelectedDelivery(null)}
+        onAssigned={handleDeliveryAssigned}
       />
 
-    <AvailableRiders />
+      <AvailableRiders refreshKey={ridersRefreshKey} />
     </section>
   )
 }

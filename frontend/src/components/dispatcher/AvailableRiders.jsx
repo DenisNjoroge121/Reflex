@@ -45,7 +45,7 @@ function RiderCard({ rider }) {
   )
 }
 
-export default function AvailableRiders() {
+export default function AvailableRiders({ refreshKey = 0 }) {
   const [riders, setRiders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -72,7 +72,7 @@ export default function AvailableRiders() {
     }
 
     fetchRiders()
-  }, [])
+  }, [refreshKey])
 
   return (
     <section className="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">

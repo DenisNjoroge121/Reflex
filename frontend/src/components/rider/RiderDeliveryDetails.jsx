@@ -2,12 +2,11 @@ import { useState } from 'react'
 import API from '../../services/api'
 import DeliveryStatusBadge from './DeliveryStatusBadge'
 
-const STATUS_FLOW = [
-  'Assigned',
-  'Picked Up',
-  'Out for Delivery',
-  'Delivered',
-]
+const NEXT_STATUS = {
+  Assigned: 'Picked Up',
+  'Picked Up': 'Out for Delivery',
+  'Out for Delivery': 'Delivered',
+}
 
 export default function RiderDeliveryDetails({
   delivery,
@@ -21,6 +20,8 @@ export default function RiderDeliveryDetails({
   if (!delivery) {
     return null
   }
+
+  const nextStatus = NEXT_STATUS[delivery.status]
 
   const handleStatusUpdate = async (status) => {
     if (delivery.status === status) {
@@ -163,40 +164,21 @@ export default function RiderDeliveryDetails({
         </h4>
 
         <p className="mt-1 text-sm text-slate-500">
-          Update the delivery status as you complete each stage.
+          {nextStatus
+            ? `Mark this delivery as ${nextStatus} when that stage is complete.`
+            : 'This delivery has no further status updates.'}
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {STATUS_FLOW.map((status) => {
-            const isCurrent = delivery.status === status
-            const isDisabled =
-              updatingStatus ||
-              delivery.status === 'Delivered' ||
-              delivery.status === 'Cancelled'
-
-            return (
-              <button
-                key={status}
-                type="button"
-                disabled={isDisabled}
-                onClick={() => handleStatusUpdate(status)}
-                className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                  isCurrent
-                    ? 'border-slate-900 bg-slate-900 text-white'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                } ${
-                  isDisabled
-                    ? 'cursor-not-allowed opacity-60'
-                    : ''
-                }`}
-              >
-                {updatingStatus && isCurrent
-                  ? 'Updating...'
-                  : status}
-              </button>
-            )
-          })}
-        </div>
+        {nextStatus && (
+          <button
+            type="button"
+            disabled={updatingStatus}
+            onClick={() => handleStatusUpdate(nextStatus)}
+            className="mt-4 rounded-lg border border-slate-900 bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {updatingStatus ? 'Updating…' : `Mark as ${nextStatus}`}
+          </button>
+        )}
       </div>
 
       <div className="mt-6 border-t border-slate-200 pt-6">

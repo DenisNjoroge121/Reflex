@@ -1,28 +1,24 @@
-import React from 'react'
-
 import { getUserRole } from '@/utils/auth'
-
 import DispatcherDashboard from './DispatcherDashboard/DispatcherDashboard'
 import RiderDashboard from './RiderDashboard/RiderDashboard'
 import RetailerDashboard from './RetaillerDashboard/RetaillerDashboard'
 import { Navigate } from 'react-router-dom'
 
 export default function RoleDashboard() {
+  const userRole = getUserRole()?.toLowerCase()
 
-    const userRole = getUserRole()
+  if (!userRole) {
+    return <Navigate to="/" replace />
+  }
 
-    if (!userRole){
-        <Navigate to='/' replace />
-    }
-
-  switch(userRole){
+  switch (userRole) {
     case 'retailer':
-        return <RetailerDashboard/>;
+      return <RetailerDashboard />
     case 'dispatcher':
-        return <DispatcherDashboard/>;
+      return <DispatcherDashboard />
     case 'rider':
-        return <RiderDashboard/>;
+      return <RiderDashboard />
     default:
-        return <Navigate to='/'/>
+      return <Navigate to="/" replace />
   }
 }
