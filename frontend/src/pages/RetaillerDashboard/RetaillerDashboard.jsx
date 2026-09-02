@@ -8,7 +8,7 @@ import React from "react";
 import { useEffect } from "react";
 import AddDelivery from "./components/AddDelivery";
 
-import { startSocket, stopSocket } from "@/services/websocket";
+import { startSocket, stopSocket } from "@/services/socket";
 
 export default function RetailerDashboard() {
   const firstName = getFirstName();
