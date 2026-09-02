@@ -1,4 +1,4 @@
-const ProofOfDelivery = require("../models/ProofOfDelivery");
+const ProofOfDelivery = require("../models/ProofofDelivery");
 
 // Create Proof of Delivery
 const createProofOfDelivery = async (req, res) => {
@@ -35,8 +35,9 @@ const createProofOfDelivery = async (req, res) => {
         const io = req.app.get("io");
 
         io.emit("proofofDeliveryCreated", {
-            message:"proof o delivery has been created", proof
-        });S
+            message: "Proof of delivery has been created",
+            proof,
+        });
 
         res.status(201).json({
             message: "Proof of Delivery created successfully",
