@@ -35,7 +35,8 @@ const updateDeliveryStatus = async (req, res) => {
         const io = req.app.get("io");
 
         io.emit("deliveryStatusUpdate", {
-            message: "Delivery status has been updated", statusupdate
+            message: "Delivery status has been updated",
+            statusUpdate
         });
 
         res.status(201).json({

@@ -3,12 +3,12 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/database");
-const assignmentRoutes = require("./routes/assignmentRoutes");
-const deliveryStatusRoutes = require("./routes/deliveryStatusRoutes");
-const proofOfDeliveryRoutes = require("./routes/proofOfDeliveryRoutes");
+const assignmentRoutes = require("./assignmentRoutes");
+const deliveryStatusRoutes = require("./DeliveryStatusRoutes");
+const proofOfDeliveryRoutes = require("./proofofDeliveryRoutes");
 const { Server } = require("socket.io");
 
-const errorHandler = require("./middleware/errorHandler");
+const errorHandler = require("../../../partB-delivery/src/middleware/errorHandler");
 
 const http = require("http");
 

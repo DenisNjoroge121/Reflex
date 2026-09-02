@@ -26,9 +26,8 @@ const {
   getDeliveryById,
   getAvailableRiders,
   cancelDelivery,
-} = require(
-  "../controllers/deliveryController"
-);
+  trackDelivery,
+} = require("../controllers/deliveryController");
 
 router.post(
   "/",
@@ -50,6 +49,8 @@ router.get(
   authorize("Dispatcher"),
   getAvailableRiders
 );
+
+router.get("/track/:id", trackDelivery);
 
 router.get(
   "/:id",

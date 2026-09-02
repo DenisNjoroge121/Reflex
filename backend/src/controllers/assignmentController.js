@@ -1,4 +1,4 @@
-const Assignment = require("../models/Assignment");
+const Assignment = require("../models/assignment");
 
 // Assign a rider to a delivery
 const createAssignment = async (req, res) => {

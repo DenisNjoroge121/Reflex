@@ -190,3 +190,40 @@ exports.cancelDelivery = async (req, res) => {
     });
   }
 };
+
+exports.trackDelivery = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const delivery = await Delivery.findById(id)
+      .populate("customer")
+      .populate("retailer");
+
+    if (!delivery) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      tracking: {
+        delivery_id: delivery._id,
+        status: delivery.status,
+        pickup_location: delivery.pickup_location,
+        dropoff_address: delivery.dropoff_address,
+        customer: delivery.customer,
+        created_at: delivery.createdAt,
+        updated_at: delivery.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
