@@ -25,13 +25,10 @@ export default function Login({ switchToRegister }) {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-
     const values = {
       
       email: email.trim(),
-      password: password.trim(),
+      password,
       
     };
 
@@ -62,9 +59,6 @@ export default function Login({ switchToRegister }) {
 
   
 
-    if (!passwordRegex.test(values.password))
-      newErrors.password = "Weak password";
-  
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
@@ -82,7 +76,7 @@ export default function Login({ switchToRegister }) {
         password: values.password,
       };
 
-      const res = await API.post("/auth/login", payload);
+      const res = await API.post("/api/auth/login", payload);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 

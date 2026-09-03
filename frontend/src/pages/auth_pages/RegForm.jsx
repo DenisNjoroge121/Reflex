@@ -16,6 +16,18 @@ export default function RegForm({
   setPassword,
   confirmPassword,
   setConfirmPassword,
+  role,
+  setRole,
+  storeName,
+  setStoreName,
+  storeLocation,
+  setStoreLocation,
+  department,
+  setDepartment,
+  vehicleType,
+  setVehicleType,
+  licensePlate,
+  setLicensePlate,
   loading,
 
   errors,
@@ -120,6 +132,59 @@ export default function RegForm({
             <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Account role
+            </label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Retailer">Retailer</option>
+              <option value="Dispatcher">Dispatcher</option>
+              <option value="Rider">Rider</option>
+            </select>
+          </div>
+
+          {role === "Retailer" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Store name</label>
+                <input type="text" value={storeName} onChange={(e) => setStoreName(e.target.value)} className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900" />
+                <p className="mt-1 text-xs text-red-500">{errors.storeName}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Store location</label>
+                <input type="text" value={storeLocation} onChange={(e) => setStoreLocation(e.target.value)} className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900" />
+                <p className="mt-1 text-xs text-red-500">{errors.storeLocation}</p>
+              </div>
+            </>
+          )}
+
+          {role === "Dispatcher" && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Department</label>
+              <input type="text" value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900" />
+              <p className="mt-1 text-xs text-red-500">{errors.department}</p>
+            </div>
+          )}
+
+          {role === "Rider" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Vehicle type</label>
+                <input type="text" value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900" />
+                <p className="mt-1 text-xs text-red-500">{errors.vehicleType}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">License plate</label>
+                <input type="text" value={licensePlate} onChange={(e) => setLicensePlate(e.target.value)} className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900" />
+                <p className="mt-1 text-xs text-red-500">{errors.licensePlate}</p>
+              </div>
+            </>
+          )}
+
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -147,8 +212,10 @@ export default function RegForm({
             <div className="relative">
               <input
                 type={showPass ? "text" : "password"}
+                minLength="6"
+                autoComplete="new-password"
                 className="w-full px-3.5 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                placeholder="••••••••"
+                placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -179,6 +246,8 @@ export default function RegForm({
             <div className="relative">
               <input
                 type={showPassC ? "text" : "password"}
+                minLength="6"
+                autoComplete="new-password"
                 className="w-full px-3.5 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                 placeholder="••••••••"
                 value={confirmPassword}

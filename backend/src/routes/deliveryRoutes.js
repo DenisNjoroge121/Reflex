@@ -25,6 +25,7 @@ const {
   getDeliveries,
   getDeliveryById,
   getAvailableRiders,
+  assignDelivery,
   cancelDelivery,
   trackDelivery,
 } = require("../controllers/deliveryController");
@@ -56,6 +57,13 @@ router.get(
   "/:id",
   authMiddleware,
   getDeliveryById
+);
+
+router.patch(
+  "/:id/assign",
+  authMiddleware,
+  authorize("Dispatcher"),
+  assignDelivery
 );
 
 router.patch(

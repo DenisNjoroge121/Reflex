@@ -12,6 +12,8 @@ const authorize = require(
 
 const {
   getAvailableRiders,
+  getRiderDeliveries,
+  updateRiderDeliveryStatus,
 } = require(
   "../controllers/deliveryController"
 );
@@ -21,6 +23,20 @@ router.get(
   authMiddleware,
   authorize("Dispatcher"),
   getAvailableRiders
+);
+
+router.get(
+  "/deliveries",
+  authMiddleware,
+  authorize("Rider"),
+  getRiderDeliveries
+);
+
+router.patch(
+  "/deliveries/:id/status",
+  authMiddleware,
+  authorize("Rider"),
+  updateRiderDeliveryStatus
 );
 
 module.exports = router;
