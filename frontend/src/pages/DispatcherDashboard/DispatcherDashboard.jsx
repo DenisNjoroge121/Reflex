@@ -1,193 +1,440 @@
-import { useEffect, useMemo, useState } from 'react'
-import API from '../../services/api'
-import DeliveryFilters from '../../components/dispatcher/DeliveryFilters'
-import DeliveryTable from '../../components/dispatcher/DeliveryTable'
-import DeliveryDetails from '../../components/dispatcher/DeliveryDetails'
-import AvailableRiders from '../../components/dispatcher/AvailableRiders'
+import { useEffect, useMemo, useState } from "react";
+import API from "../../services/api";
+import { getFirstName, getLastName } from "@/utils/auth";
 
-function SummaryCard({ label, value }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-
-      <p className="mt-2 text-3xl font-bold text-slate-900">
-        {value}
-      </p>
-    </div>
-  )
-}
+import DeliveryFilters from "../../components/dispatcher/DeliveryFilters";
+import DeliveryTable from "../../components/dispatcher/DeliveryTable";
+import DeliveryDetails from "../../components/dispatcher/DeliveryDetails";
+import AvailableRiders from "../../components/dispatcher/AvailableRiders";
 
 export default function DispatcherDashboard() {
-  const [deliveries, setDeliveries] = useState([])
-  const [selectedStatus, setSelectedStatus] = useState('all')
-  const [selectedDelivery, setSelectedDelivery] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [ridersRefreshKey, setRidersRefreshKey] = useState(0)
+  const firstName = getFirstName();
+  const lastName = getLastName();
+
+  const [deliveries, setDeliveries] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [ridersRefreshKey, setRidersRefreshKey] = useState(0);
+  const [connected, setConnected] = useState(false);
+  const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+
+  const fetchDeliveries = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await API.get("/deliveries");
+
+      setDeliveries(response.data?.deliveries || []);
+    } catch (err) {
+      console.error("Failed to load deliveries:", err);
+
+      setError(
+        err.response?.data?.message ||
+          "Unable to load delivery requests."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDeliveries = async () => {
-      try {
-        setLoading(true)
-        setError('')
+    fetchDeliveries();
 
-        const response = await API.get('/api/deliveries')
+    // Dashboard connection indicator
+    setConnected(true);
 
-        setDeliveries(response.data?.deliveries || [])
-      } catch (err) {
-        console.error('Failed to load deliveries:', err)
-
-        setError(
-          err.response?.data?.message ||
-            'Unable to load delivery requests.',
-        )
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchDeliveries()
-  }, [])
+    return () => {
+      setConnected(false);
+    };
+  }, []);
 
   const summary = useMemo(
     () => ({
       pending: deliveries.filter(
-        (delivery) => delivery.status === 'Pending',
+        (delivery) => delivery.status === "Pending"
       ).length,
 
       assigned: deliveries.filter(
-        (delivery) => delivery.status === 'Assigned',
+        (delivery) => delivery.status === "Assigned"
       ).length,
 
       inProgress: deliveries.filter(
         (delivery) =>
-          delivery.status === 'Picked Up' ||
-          delivery.status === 'Out for Delivery',
+          delivery.status === "Picked Up" ||
+          delivery.status === "Out for Delivery"
       ).length,
 
       delivered: deliveries.filter(
-        (delivery) => delivery.status === 'Delivered',
+        (delivery) => delivery.status === "Delivered"
       ).length,
     }),
-    [deliveries],
-  )
+    [deliveries]
+  );
 
   const filteredDeliveries = useMemo(() => {
-    if (selectedStatus === 'all') {
-      return deliveries
+    if (selectedStatus === "all") {
+      return deliveries;
     }
 
     return deliveries.filter(
-      (delivery) => delivery.status === selectedStatus,
-    )
-  }, [deliveries, selectedStatus])
+      (delivery) => delivery.status === selectedStatus
+    );
+  }, [deliveries, selectedStatus]);
 
   const handleDeliveryAssigned = (updatedDelivery) => {
     setDeliveries((currentDeliveries) =>
       currentDeliveries.map((delivery) =>
         delivery._id === updatedDelivery._id
           ? updatedDelivery
-          : delivery,
-      ),
-    )
-    setSelectedDelivery(updatedDelivery)
-    setRidersRefreshKey((currentKey) => currentKey + 1)
-  }
+          : delivery
+      )
+    );
+
+    setSelectedDelivery(updatedDelivery);
+
+    setRidersRefreshKey((currentKey) => currentKey + 1);
+  };
+
+  const logOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    localStorage.setItem("logout", Date.now());
+
+    setShowConfirmLogout(false);
+
+    window.location.href = "/";
+  };
+
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (event.key === "logout") {
+        window.location.href = "/";
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
 
   return (
-    <section>
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-          Dispatcher Dashboard
-        </h2>
+    <div className="min-h-screen bg-slate-50">
 
-        <p className="mt-2 text-slate-500">
-          Monitor deliveries, manage riders, and coordinate delivery progress.
-        </p>
-      </div>
+      {/* Top Navigation */}
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard
-          label="Pending"
-          value={summary.pending}
-        />
+          {/* Logo */}
+          <div className="flex items-center gap-3">
 
-        <SummaryCard
-          label="Assigned"
-          value={summary.assigned}
-        />
-
-        <SummaryCard
-          label="In Progress"
-          value={summary.inProgress}
-        />
-
-        <SummaryCard
-          label="Delivered"
-          value={summary.delivered}
-        />
-      </div>
-
-      <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 p-6">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">
-                Delivery Requests
-              </h3>
-
-              <p className="mt-1 text-sm text-slate-500">
-                View and monitor incoming delivery requests.
-              </p>
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-sm shadow-indigo-500/20">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+                <path d="M15 18H9" />
+                <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+                <circle cx="17" cy="18" r="2" />
+                <circle cx="7" cy="18" r="2" />
+              </svg>
             </div>
 
-            <DeliveryFilters
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
-            />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+
+                <h1 className="text-lg font-bold text-slate-900 leading-tight">
+                  Reflex
+                </h1>
+
+                <div
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${
+                    connected
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-rose-50 text-rose-700 border-rose-200"
+                  }`}
+                >
+                  <span className="relative flex h-1.5 w-1.5">
+                    {connected && (
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    )}
+
+                    <span
+                      className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
+                        connected
+                          ? "bg-emerald-500"
+                          : "bg-rose-500"
+                      }`}
+                    />
+                  </span>
+
+                  {connected ? "Online" : "Offline"}
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-500">
+                Dispatcher Portal
+              </p>
+            </div>
+          </div>
+
+          {/* User + Logout */}
+          <div className="flex items-center gap-4">
+
+            <div className="hidden sm:flex items-center gap-3">
+
+              <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-semibold ring-2 ring-white">
+                {firstName?.charAt(0).toUpperCase() || "D"}
+                {lastName?.charAt(0).toUpperCase() || "S"}
+              </div>
+
+              <div className="text-sm">
+                <p className="font-medium text-slate-900 leading-tight">
+                  {`${firstName || "Reflex"} ${lastName || "System"}`}
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Dispatcher
+                </p>
+              </div>
+
+            </div>
+
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all"
+              onClick={() => setShowConfirmLogout(true)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+
+              Logout
+            </button>
           </div>
         </div>
+      </header>
 
-        {loading && (
-          <div className="p-10 text-center">
-            <p className="font-medium text-slate-700">
-              Loading deliveries...
-            </p>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-            <p className="mt-1 text-sm text-slate-500">
-              Fetching delivery requests from the backend.
-            </p>
-          </div>
-        )}
+        {/* Page Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Dispatcher Dashboard
+          </h2>
 
-        {!loading && error && (
-          <div className="p-10 text-center">
-            <p className="font-medium text-red-700">
-              {error}
-            </p>
+          <p className="text-sm text-slate-500 mt-1">
+            Monitor deliveries, manage riders, and coordinate delivery progress.
+          </p>
+        </div>
 
-            <p className="mt-1 text-sm text-slate-500">
-              The backend may still be under development.
-            </p>
-          </div>
-        )}
+        {/* Summary Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-        {!loading && !error && (
-          <DeliveryTable
-            deliveries={filteredDeliveries}
-            onViewDetails={setSelectedDelivery}
+          <SummaryCard
+            label="Pending"
+            value={summary.pending}
           />
-        )}
+
+          <SummaryCard
+            label="Assigned"
+            value={summary.assigned}
+          />
+
+          <SummaryCard
+            label="In Progress"
+            value={summary.inProgress}
+          />
+
+          <SummaryCard
+            label="Delivered"
+            value={summary.delivered}
+          />
+
+        </div>
+
+        {/* Delivery Requests */}
+        <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+
+          <div className="border-b border-slate-200 p-6">
+
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">
+                  Delivery Requests
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  View and monitor incoming delivery requests.
+                </p>
+              </div>
+
+              <DeliveryFilters
+                selectedStatus={selectedStatus}
+                onStatusChange={setSelectedStatus}
+              />
+
+            </div>
+
+          </div>
+
+          {loading && (
+            <div className="p-10 text-center">
+              <p className="font-medium text-slate-700">
+                Loading deliveries...
+              </p>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Fetching delivery requests from the backend.
+              </p>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="p-10 text-center">
+              <p className="font-medium text-red-700">
+                {error}
+              </p>
+
+              <button
+                onClick={fetchDeliveries}
+                className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {!loading && !error && (
+            <DeliveryTable
+              deliveries={filteredDeliveries}
+              onViewDetails={setSelectedDelivery}
+            />
+          )}
+
+        </div>
+
+        <AvailableRiders
+          refreshKey={ridersRefreshKey}
+        />
+
+        <DeliveryDetails
+          key={selectedDelivery?._id || "no-delivery-selected"}
+          delivery={selectedDelivery}
+          onClose={() => setSelectedDelivery(null)}
+          onAssigned={handleDeliveryAssigned}
+        />
+
+      </main>
+
+      {showConfirmLogout && (
+        <ConfirmLogoutModal
+          setShowConfirmLogout={setShowConfirmLogout}
+          logOut={logOut}
+        />
+      )}
+
+    </div>
+  );
+}
+
+function SummaryCard({ label, value }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-sm font-medium text-slate-500">
+        {label}
+      </p>
+
+      <p className="mt-2 text-3xl font-bold text-slate-900">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function ConfirmLogoutModal({
+  setShowConfirmLogout,
+  logOut,
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-slate-200">
+
+        <div className="flex flex-col items-center text-center mb-6">
+
+          <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </div>
+
+          <h3 className="text-xl font-bold text-slate-900">
+            Confirm Logout
+          </h3>
+
+          <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+            Are you sure you want to log out of your account?
+          </p>
+
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+
+          <button
+            type="button"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all"
+            onClick={() => setShowConfirmLogout(false)}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all"
+            onClick={logOut}
+          >
+            Yes, Log Out
+          </button>
+
+        </div>
       </div>
-
-      <DeliveryDetails
-        key={selectedDelivery?._id || 'no-delivery-selected'}
-        delivery={selectedDelivery}
-        onClose={() => setSelectedDelivery(null)}
-        onAssigned={handleDeliveryAssigned}
-      />
-
-      <AvailableRiders refreshKey={ridersRefreshKey} />
-    </section>
-  )
+    </div>
+  );
 }

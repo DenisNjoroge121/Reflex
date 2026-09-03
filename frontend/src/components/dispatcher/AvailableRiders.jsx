@@ -56,7 +56,7 @@ export default function AvailableRiders({ refreshKey = 0 }) {
         setLoading(true)
         setError('')
 
-        const response = await API.get('/api/riders/available')
+        const response = await API.get('/riders/available')
 
         setRiders(response.data?.riders || [])
       } catch (err) {

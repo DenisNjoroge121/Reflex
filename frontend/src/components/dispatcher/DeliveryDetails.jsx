@@ -64,7 +64,7 @@ export default function DeliveryDetails({
       try {
         setLoadingRiders(true)
         setAssignmentError('')
-        const response = await API.get('/api/riders/available')
+        const response = await API.get('/riders/available')
         setRiders(response.data?.riders || [])
       } catch (err) {
         setAssignmentError(
@@ -89,7 +89,7 @@ export default function DeliveryDetails({
     try {
       setAssigning(true)
       setAssignmentError('')
-      const response = await API.patch(`/api/deliveries/${delivery._id}/assign`, {
+      const response = await API.patch(`/deliveries/${delivery._id}/assign`, {
         rider_id: selectedRiderId,
       })
       const updatedDelivery = response.data?.delivery

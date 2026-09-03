@@ -76,7 +76,7 @@ export default function Login({ switchToRegister }) {
         password: values.password,
       };
 
-      const res = await API.post("/api/auth/login", payload);
+      const res = await API.post("/auth/login", payload);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 

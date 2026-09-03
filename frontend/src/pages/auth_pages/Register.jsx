@@ -129,7 +129,7 @@ export default function Register({ switchToLogin }) {
 
      
 
-      const res = await API.post("/api/auth/register", payload);
+      const res = await API.post("/auth/register", payload);
 
       setMessage(res.data.success || "Signup successfull. Redirecting...");
       setMessageType("success");

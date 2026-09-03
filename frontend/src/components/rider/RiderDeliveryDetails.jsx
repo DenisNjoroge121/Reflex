@@ -34,7 +34,7 @@ export default function RiderDeliveryDetails({
       setSuccess('')
 
       const response = await API.patch(
-        `/api/riders/deliveries/${delivery._id}/status`,
+        `/deliveries/${delivery._id}/status`,
         {
           status,
         },
