@@ -84,6 +84,7 @@ export default function Login({ switchToRegister }) {
 
       const res = await API.post("/auth/login", payload);
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
       setMessage(res.data.success || "Login successful. Redirecting...");
       setMessageType("success");
