@@ -14,6 +14,7 @@ exports.createDelivery = async (req, res) => {
       dropoff_address,
       phone,
       instructions,
+      item_description,
       items,
     } = req.body;
 
@@ -41,6 +42,7 @@ exports.createDelivery = async (req, res) => {
       dropoff_address,
       phone,
       instructions,
+      item_description,
       status: "Pending",
     });
 

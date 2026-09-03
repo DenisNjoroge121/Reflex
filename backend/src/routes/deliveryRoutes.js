@@ -28,6 +28,7 @@ const {
   assignDelivery,
   cancelDelivery,
   trackDelivery,
+  updateRiderDeliveryStatus,
 } = require("../controllers/deliveryController");
 
 router.post(
@@ -70,6 +71,13 @@ router.patch(
   "/:id/cancel",
   authMiddleware,
   cancelDelivery
+);
+
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  authorize("Rider"),
+  updateRiderDeliveryStatus
 );
 
 module.exports = router;

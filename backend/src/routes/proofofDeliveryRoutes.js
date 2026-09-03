@@ -1,14 +1,28 @@
 const express = require("express");
 
+const router = express.Router();
+
 const {
   createProofOfDelivery,
   getProofOfDelivery,
 } = require("../controllers/ProofofDeliveryController");
 
-const router = express.Router();
+const authMiddleware = require("../middleware/authMiddleware");
+const authorize = require("../middleware/roleMiddleware");
 
-router.post("/", createProofOfDelivery);
+// Create proof of delivery - Rider only
+router.post(
+  "/",
+  authMiddleware,
+  authorize("Rider"),
+  createProofOfDelivery
+);
 
-router.get("/:delivery_id", getProofOfDelivery);
+// Get proof of delivery - Authenticated users
+router.get(
+  "/:delivery_id",
+  authMiddleware,
+  getProofOfDelivery
+);
 
 module.exports = router;

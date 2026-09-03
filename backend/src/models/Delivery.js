@@ -47,6 +47,10 @@ const deliverySchema = new mongoose.Schema(
       type: String
     },
 
+    item_description: {
+      type: String
+    },
+
     status: {
       type: String,
       enum: DELIVERY_STATUS,

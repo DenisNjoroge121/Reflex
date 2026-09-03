@@ -1,22 +1,13 @@
 const express = require("express");
-
 const router = express.Router();
 
-const authMiddleware = require(
-  "../middleware/authMiddleware"
-);
-
-const authorize = require(
-  "../middleware/roleMiddleware"
-);
+const authMiddleware = require("../middleware/authMiddleware");
+const authorize = require("../middleware/roleMiddleware");
 
 const {
   getAvailableRiders,
   getRiderDeliveries,
-  updateRiderDeliveryStatus,
-} = require(
-  "../controllers/deliveryController"
-);
+} = require("../controllers/deliveryController");
 
 router.get(
   "/available",
@@ -30,13 +21,6 @@ router.get(
   authMiddleware,
   authorize("Rider"),
   getRiderDeliveries
-);
-
-router.patch(
-  "/deliveries/:id/status",
-  authMiddleware,
-  authorize("Rider"),
-  updateRiderDeliveryStatus
 );
 
 module.exports = router;
